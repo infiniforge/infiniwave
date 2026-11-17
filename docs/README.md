@@ -1,8 +1,10 @@
-# infiniwave documentation index
+# InfiniWave documentation index
 
-Planned Android audio file editor, with Audacity as a product reference.
+Planned sound-generation and instrument-creation application.
 
 ## Start here
+
+- [Application description and implementation status](APPLICATION.md).
 
 - [Project overview and standalone build](../README.md).
 - [Repository-specific agent guidance](../AGENTS.md).

@@ -1,6 +1,6 @@
 # InfiniWave agent guidance
 
-InfiniWave is a planned Infiniforge audio file editor, with Audacity as a product reference. This directory is a project placeholder; do not describe features as implemented until they exist in this app.
+InfiniWave is a planned Infiniforge sound-generation and instrument-creation environment. This directory is a project placeholder; do not describe features as implemented until they exist in this app. Its current direction is documented in `docs/APPLICATION.md`.
 
 ## Independence and integration
 
@@ -11,13 +11,13 @@ InfiniWave is a planned Infiniforge audio file editor, with Audacity as a produc
 
 ## Project focus
 
-- The intended role is audio editing. Define editing operations, project format, and export behavior as implementation grows; do not imply complete Audacity feature parity.
+- The intended role is sound generation, instrument creation, sound design, and preset management. Define synthesis APIs, project/preset formats, and export behavior as implementation grows; do not describe an audio editor or complete Audacity feature parity as the current direction.
 - Document the app's standalone build and keep library revisions explicit.
 
 ## Ecosystem workflow for agents
 
 1. Read `docs/ECOSYSTEM.md` first to understand the component map and ownership boundaries.
-2. Before changing a public interface, read this repository's architecture and API documentation listed below and inspect its compatibility notes.
+2. Read `docs/APPLICATION.md` for this app's intended role and current status. Before changing a public interface, read the repository's architecture and API documentation listed below and inspect compatibility notes.
 3. Check the owning shared library repository before implementing behavior that may already exist elsewhere. Do not conclude a capability is unavailable just because its implementation is outside the current repository.
 4. Keep application responsibilities, shared library APIs, and other applications' private data/source separate.
 5. Before a cross-repository change, check the exact dependency pin and the relevant interoperability contract. Dependency versions and protocol versions are separate; do not infer protocol incompatibility from a library-version mismatch.
@@ -28,4 +28,5 @@ InfiniWave is a planned Infiniforge audio file editor, with Audacity as a produc
 - `README.md` — project purpose, prerequisites, and standalone build instructions.
 - `AGENTS.md` — repository-specific development rules and this ecosystem workflow.
 - `docs/README.md` — local documentation index.
+- `docs/APPLICATION.md` — application purpose, responsibilities, implementation status, planned work, and known limits.
 - `docs/ECOSYSTEM.md` — generated ecosystem-wide inventory, boundaries, dependencies, versions, and protocols.
