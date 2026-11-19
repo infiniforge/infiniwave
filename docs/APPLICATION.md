@@ -4,7 +4,7 @@ InfiniWave owns an Android audio editor and sound-generation workspace. Its mode
 is Audacity: several waveforms on a shared time axis, editable selections and
 independent tracks/channels. It remains independently installable and buildable.
 
-Implemented in 0.3.0: importing multiple audio files, channel-lane waveform previews,
+Implemented in 0.3.1: importing multiple audio files, channel-lane waveform previews,
 time selections, zoom/pan/reset-to-fit, playback, track gain/pan/offset/mute/solo,
 explicit destination channels, duplicate/remove, split to mono, combine mono as
 channels, stereo mixdown, copy/cut/paste, delete/trim/silence/reverse/normalize/fades,
@@ -29,7 +29,10 @@ Delete removes only highlighted frames in the selected waveform, closing its gap
 The other tracks stay positioned. Empty selections disable deletion. Profiles offer
 an explicit Render to audio action first. Finger drags preview and commit selection
 on release; any multitouch cancels that pending selection. Pinching zooms around
-its moving focus across all waveforms. View also offers drag-to-pan and fit controls.
+its moving focus across all waveforms, with fingers on the same or separate tracks.
+Horizontal, vertical and diagonal finger separation drives zoom; translating both
+fingers pans. The workspace retains the gesture until all fingers lift. View also
+offers drag-to-pan and fit controls.
 
 Channels splits stereo into named Left/Right mono waveforms, preserving audible
 levels and routes. Recombining chosen mono waveforms bakes their gains and mute/solo

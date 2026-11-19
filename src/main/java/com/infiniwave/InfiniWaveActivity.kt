@@ -135,7 +135,11 @@ class InfiniWaveActivity : Activity() {
         deleteButton=Button(this).apply{text="Delete selection";textSize=12f;isAllCaps=false;minHeight=dp(48);setTextColor(WaveUi.danger);backgroundTintList=ColorStateList.valueOf(WaveUi.raised);contentDescription="Delete selected audio and close the gap in this waveform";tooltipText=contentDescription;setOnClickListener{runAction{if(selectedTrack()?.profile()!=null){renderProfile();message("Ready for sample editing • Drag to select, then Delete selection")}else deleteSelection()}}}
         controls+=deleteButton;selectionBar.addView(deleteButton,LinearLayout.LayoutParams(dp(116),dp(48)));outer.addView(selectionBar)
         rows=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(dp(8),0,dp(8),dp(12))}
-        outer.addView(ScrollView(this).apply{isFillViewport=true;addView(rows)},LinearLayout.LayoutParams(-1,0,1f))
+        outer.addView(WaveformWorkspace(this).apply{
+            isFillViewport=true;waveformInset=dp(8);canZoom=::canAct
+            onPinch={factor,previousFocus,focus->showView(viewport().zoom(factor,previousFocus,focus))}
+            addView(rows)
+        },LinearLayout.LayoutParams(-1,0,1f))
         val footer=row().apply{setPadding(dp(10),dp(4),dp(8),dp(4))}
         status=label("Drag to select • Pinch to zoom • Select a tool below",12f).apply{setTextColor(WaveUi.secondary);accessibilityLiveRegion=View.ACCESSIBILITY_LIVE_REGION_POLITE}
         footer.addView(status,LinearLayout.LayoutParams(0,-2,1f));cancelButton=Button(this).apply{text="Cancel task";isAllCaps=false;setOnClickListener{cancelJob()};visibility=View.GONE};footer.addView(cancelButton);outer.addView(footer)
@@ -518,7 +522,7 @@ class InfiniWaveActivity : Activity() {
     }
     private fun newWorkspace(){AlertDialog.Builder(this).setMessage("Start a new workspace? Save your project first if you want to keep it.").setNegativeButton("Cancel",null).setPositiveButton("New"){_,_->stop();history.apply(WaveProject());selected=null;from=0.0;to=0.0;fitView();changed()}.show()}
     private fun saveProject(){val p=history.current();val f=File.createTempFile("wave-project-",".iwave",cacheDir);job("Saving project",{try{f.outputStream().buffered().use{ProjectFile.write(p,it)};f}catch(e:Throwable){f.delete();throw e}}){save(it,"infiniwave-project.iwave","application/vnd.infiniforge.wave-project")}}
-    private fun about(){AlertDialog.Builder(this).setTitle("InfiniWave 0.3.0").setMessage("Multitrack editing, waveform effects and parameter-based synthesis. Original app/library code is MIT. Native cores: Nuked-OPL3 (LGPL-2.1+), chips m6581 (zlib), SAA1099 (BSD-3-Clause).\n\nSource and notices: github.com/infiniforge/infiniwave and github.com/infiniforge/libinfinisynth\n\nImported files stay untouched. Noise filters and gating are adjustable; learned-profile spectral denoising is not implemented.").setPositiveButton("Done",null).show()}
+    private fun about(){AlertDialog.Builder(this).setTitle("InfiniWave 0.3.1").setMessage("Multitrack editing, waveform effects and parameter-based synthesis. Original app/library code is MIT. Native cores: Nuked-OPL3 (LGPL-2.1+), chips m6581 (zlib), SAA1099 (BSD-3-Clause).\n\nSource and notices: github.com/infiniforge/infiniwave and github.com/infiniforge/libinfinisynth\n\nImported files stay untouched. Noise filters and gating are adjustable; learned-profile spectral denoising is not implemented.").setPositiveButton("Done",null).show()}
     private fun save(file:File,name:String,mime:String){
         try{val uri=InfiniSelect.createFileDocument(this,file,name,mime);pendingFile=file;savePending=true
             InfiniSelect.save(this,SaveRequest(clientId="infiniwave",displayName="InfiniWave",fileName=name,mimeType=mime,sourceUri=uri,sourceSizeBytes=file.length(),initialDirectory=directory),REQUEST_SAVE);refresh()

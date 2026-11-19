@@ -1,6 +1,6 @@
 # InfiniWave
 
-InfiniWave 0.3.0 is an independent Android multitrack audio editor and sound-design
+InfiniWave 0.3.1 is an independent Android multitrack audio editor and sound-design
 workspace, inspired by Audacity. Import several files or generate sounds; each
 track appears on a shared timeline with separate channel lanes. There is no fixed
 workspace track count; memory/render budgets still apply.
@@ -9,7 +9,9 @@ The interface uses a compact document toolbar, a persistent selection/Delete bar
 and bottom tools with navigable Back/Close dialogs, following InfiniCanvas's layout.
 Drag across sound, then press **Delete selection** to remove it and close the gap
 in that waveform. Undo restores it. Pinch with two fingers to zoom without changing
-the selection; View switches one-finger dragging between selection and timeline pan.
+the selection, including when fingers land on different tracks. Spread fingers to
+zoom in, pinch together to zoom out; moving both fingers pans the timeline. View
+switches one-finger dragging between selection and timeline pan.
 
 Channels → **Split Left / Right** creates separate mono waveforms. **Recombine
 Left + Right** assigns any chosen pair to stereo while preserving other tracks.

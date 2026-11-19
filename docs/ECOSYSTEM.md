@@ -82,9 +82,9 @@ The inventory contains 10 applications (6 with standalone builds and 4 planned p
 
 #### [infiniwave](https://github.com/infiniforge/infiniwave)
 
-**State:** active · **Build:** standalone app build · **Versions:** no published release verified; build declares `0.3.0`
+**State:** active · **Build:** standalone app build · **Versions:** no published release verified; build declares `0.3.1`
 
-**Purpose:** Standalone Android multitrack audio editor and parameter-based sound-design workspace inspired by Audacity. Owns multitrack waveform editing, compact toolbars and navigable tool dialogs, selection deletion, anchored pinch zoom, chosen-channel split/recombine, playback, immutable projects and history, recovery, versioned JSON synthesis profiles and SAF exports. Uses libinfinisound for portable decoding and PCM effects (polarity, peak/DC normalization, filters and gating), and libinfinisynth for synthesis. Infinifolder remains optional. Recording, plugin effects, spectral denoising, automation and complete Audacity parity remain planned.
+**Purpose:** Standalone Android multitrack audio editor and parameter-based sound-design workspace inspired by Audacity. Owns multitrack waveform editing, compact toolbars and navigable tool dialogs, selection deletion, anchored workspace pinch zoom across tracks, chosen-channel split/recombine, playback, immutable projects and history, recovery, versioned JSON synthesis profiles and SAF exports. Uses libinfinisound for portable decoding and PCM effects (polarity, peak/DC normalization, filters and gating), and libinfinisynth for synthesis. Infinifolder remains optional. Recording, plugin effects, spectral denoising, automation and complete Audacity parity remain planned.
 
 **Pinned source dependency closure:** [libinfiniselect](https://github.com/infiniforge/libinfiniselect), [libinfinisound](https://github.com/infiniforge/libinfinisound), [libinfinistream](https://github.com/infiniforge/libinfinistream), [libinfinisynth](https://github.com/infiniforge/libinfinisynth)
 

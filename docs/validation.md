@@ -9,7 +9,9 @@ effect save/undo/redo, explicit stereo pair ordering, preserving unrelated track
 relative offsets, split/recombine mixer levels, mute behavior, profile guards and
 project round-trips. Gesture models cover deferred selection commits, cancellation,
 second-pointer selection suppression, anchored pinch zoom, two-finger pan and
-viewport bounds. DSP checks measure wanted/unwanted tone levels for low/high-pass
+viewport bounds. Pinch geometry also covers fingers in separate tracks, vertical
+and diagonal gestures, small movements, changing pointer pairs and invalid/nearby
+points without zoom jumps. DSP checks measure wanted/unwanted tone levels for low/high-pass
 and hum notch filters, channel isolation, gate attenuation and stereo linking,
 DC/peak normalization, finite values, invalid parameters and cancellation.
 

@@ -17,8 +17,10 @@ Undo restores profile parameters as well as its cached audio.
 
 ## Zoom and select
 
-Pinch with two fingers to zoom around the sound under your fingers. The viewport
-stays aligned across all waveform lanes. Pinching, including lifting one finger
+Spread two fingers to zoom in; pinch them together to zoom out around the sound
+under your fingers. The fingers can land on the same waveform or different tracks,
+and horizontal, vertical and diagonal pinches work. Move both fingers together
+to pan the timeline. The viewport stays aligned across all waveform lanes. Pinching, including lifting one finger
 before the other, leaves the time selection untouched. View offers fit all, fit
 selection, zoom and pan buttons. View → Use drag to pan changes one-finger drags
 to horizontal timeline movement; switch back to drag-to-select for editing.

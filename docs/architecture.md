@@ -13,9 +13,13 @@ selection, profile, clipboard, history and worker state.
 
 WaveformTouch previews a one-finger drag locally and commits selection only at
 finger-up. Any multitouch discards that preview and suppresses selection until a
-fresh gesture. TimelineViewport handles bounded pinch-focus zoom and pan geometry
-for shared waveform views; zoom never commits time selection. Gesture regressions
-run without Android, against the same models used by WaveformView.
+fresh gesture. WaveformWorkspace captures the second pointer before child dispatch,
+cancels the pending child gesture and owns the stream through final finger-up.
+This works across track boundaries even when a child disallows interception.
+TimelinePinch measures two-dimensional finger separation and moving horizontal
+focus, rebasing when pointers change. TimelineViewport handles bounded zoom and
+pan for shared waveform views; zoom never commits time selection. Gesture models
+run without Android; native dispatch still requires handset acceptance.
 
 WaveProject.process clips global selections to local frames, preserves track
 identity/settings/duration, and rejects direct processing of profiles. libinfinisound

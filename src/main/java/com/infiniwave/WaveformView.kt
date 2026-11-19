@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.view.MotionEvent
-import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.ViewConfiguration
 import com.infiniwave.editor.TimelineViewport
@@ -44,22 +43,8 @@ class WaveformView(context: Context) : View(context) {
     private val touch=WaveformTouch()
     private val slop=ViewConfiguration.get(context).scaledTouchSlop.toDouble()
     private var panX=0f
-    private var previousFocus=.5
     private fun viewport()=TimelineViewport(viewFrom,viewSeconds)
     private val paint=Paint(Paint.ANTI_ALIAS_FLAG).apply{strokeCap=Paint.Cap.ROUND}
-    private val scale=ScaleGestureDetector(context,object:ScaleGestureDetector.SimpleOnScaleGestureListener(){
-        override fun onScaleBegin(detector:ScaleGestureDetector):Boolean {
-            if(!interactionEnabled)return false
-            touch.beginMultitouch();previousFocus=(detector.focusX/max(1,width)).toDouble();invalidate();return true
-        }
-        override fun onScale(detector:ScaleGestureDetector):Boolean {
-            if(!interactionEnabled)return false
-            val focus=(detector.focusX/max(1,width)).toDouble()
-            val factor=detector.scaleFactor.toDouble();if(!factor.isFinite()||factor<=0)return false
-            val next=viewport().zoom(factor,previousFocus,focus)
-            previousFocus=focus;onZoom?.invoke(next.start(),next.seconds());return true
-        }
-    }).apply{isQuickScaleEnabled=false}
     override fun onDraw(canvas:Canvas) {
         super.onDraw(canvas);canvas.drawColor(if(trackSelected)0xff182d3b.toInt() else 0xff14222d.toInt())
         val pending=touch.preview();val a=pending?.from()?:selectionFrom;val b=pending?.to()?:selectionTo
@@ -112,10 +97,9 @@ class WaveformView(context: Context) : View(context) {
             touch.down(event.x.toDouble(),time)
         }
         if(event.actionMasked==MotionEvent.ACTION_POINTER_DOWN)touch.beginMultitouch()
-        scale.onTouchEvent(event)
         val time=(viewFrom+event.x.coerceIn(0f,width.toFloat())/max(1,width)*viewSeconds).coerceAtLeast(0.0)
         when(event.actionMasked){
-            MotionEvent.ACTION_MOVE->if(!touch.multitouch()&&!scale.isInProgress){
+            MotionEvent.ACTION_MOVE->if(!touch.multitouch()){
                 if(panMode){val next=viewport().pan((panX-event.x)/max(1,width)*viewSeconds);panX=event.x;onZoom?.invoke(next.start(),next.seconds())}
                 else touch.move(event.x.toDouble(),time,slop)
             }
