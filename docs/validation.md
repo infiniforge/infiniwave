@@ -21,9 +21,16 @@ points without zoom jumps. DSP checks measure wanted/unwanted tone levels for lo
 and hum notch filters, channel isolation, gate attenuation and stereo linking,
 DC/peak normalization, finite values, invalid parameters and cancellation.
 
+Live playback mixer tests verify consecutive block positions while muting,
+unmuting, soloing and muting a solo track; silent blocks that continue to the
+original range end; rapid/latest settings updates; simultaneous solos; high-route
+stereo monitoring; bounded blocks and a partial final block; equality with offline
+mixing for nonzero selections; and cancellation without cursor advancement.
+
 No Android device is connected in the current build environment. Handset acceptance
 is still required for toolbar/dialog sizing and Back navigation, dragging/deleting
 sound, pinch focus and vertical workspace scrolling, audible filtering and playback,
 selecting different stereo pairs, Edit radio states and isolated highlights, the
-split/invert/mono dialog workflow, and SAF/InfiniFolder open/save round-trips.
+split/invert/mono dialog workflow, mute/solo response without device underruns or
+transport resets, and SAF/InfiniFolder open/save round-trips.
 Automated model/DSP tests do not substitute for those touch/audio checks.

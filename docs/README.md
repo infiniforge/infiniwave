@@ -8,5 +8,5 @@
 - [Build and usage](../README.md): independent build and icon regeneration.
 - [Library pins](../dependencies.lock.json): exact public source revisions.
 
-- [Editing guide](editing.md): isolated track editing, stereo splitting/inversion/mono mixing, selections, zoom and effects.
+- [Editing guide](editing.md): isolated track editing, stereo splitting/inversion/mono mixing, selections, zoom, live mute/solo and effects.
 - [Validation](validation.md): automated coverage and outstanding handset checks.

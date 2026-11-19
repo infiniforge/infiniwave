@@ -66,6 +66,17 @@ routing, and carries solo if any source was solo. Unrelated tracks are preserved
 Float samples remain unclipped internally; summed levels may clip during output.
 Undo restores mixing, inversion and splitting separately; source files stay intact.
 
+## Mute and solo during playback
+
+Use **M** to mute a waveform and **S** to solo it while sound is playing. These
+controls update the running mix without stopping, restarting or moving playback.
+When any track is solo, only solo tracks are audible; mute still silences a solo
+track. Multiple tracks can be solo together. Muting every audible track keeps
+the playhead moving through silence; unmute to hear the current point in time.
+Playback ends at its original range boundary. Output buffering can delay a change
+briefly. These flags remain saved and undoable; Undo and sample edits retain their
+usual stop behavior.
+
 ## Effects
 
 Effects act on the highlighted time in the selected waveform. With only a cursor,

@@ -60,8 +60,17 @@ supports 1..32 channels. Float mix levels remain unclipped until device/WAV outp
 
 One worker performs decoding, generation, edits, peaks and ordered recovery writes.
 Cancellation invalidates stale completions and interrupts cooperative renderers.
-Playback owns a separate session/thread and stops when the Activity pauses. The
-activity preserves save cache sources through the picker result and cleans up after.
+Playback owns a separate session/thread and stops when the Activity pauses.
+PlaybackMixer keeps the initial range and one audio-thread cursor, rendering
+1024-frame stereo blocks through WaveProject.mix. A volatile immutable project
+snapshot is replaced on mute/solo changes; high numbered routes still monitor
+through their corresponding stereo sides. The update changes no cursor or range.
+The same AudioTrack continues to drain small queued blocks without pause, flush
+or restart. All-muted blocks are silence, not end-of-stream. Mute/solo changes
+use the existing history/recovery path with playback preservation; other changes
+still stop playback. The playhead comes from AudioTrack's consumed-frame count,
+including after rebuilding rows. Device buffering determines control latency.
+The activity preserves save cache sources through the picker result and cleans up after.
 
 The standalone Gradle build uses four pinned public library source composites:
 libinfiniselect (selection, grants, source resolution and saving), libinfinisound

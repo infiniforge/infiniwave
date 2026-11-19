@@ -73,7 +73,7 @@ class InfiniWaveActivity : Activity() {
     private var bank:SoundFontBank?=null
     private var bankSample=0
     private var task:Future<*>?=null
-    private class Playback {
+    private class Playback(val mixer:PlaybackMixer) {
         @Volatile var active=true
         @Volatile var player:AudioTrack?=null
         @Volatile var frame=0
@@ -192,9 +192,8 @@ class InfiniWaveActivity : Activity() {
             };editSelectors[track.id()]=edit;trackControls+=edit;head.addView(edit)
             val title=Button(this).apply{text="${track.name()}  ·  ${track.profile()?.engine()?.name?.plus(" profile")?:"audio"}  ·  ${track.audio().channels()} ch";textSize=13f;setTextColor(WaveUi.text);isAllCaps=false;backgroundTintList=ColorStateList.valueOf(if(track.id()==selected)WaveUi.raised else WaveUi.surface);setOnClickListener{if(canAct()){selected=track.id();refreshWaves();toolSheet?.refresh()}};setOnLongClickListener{if(canAct()){selected=track.id();refreshWaves();openTool("tracks")};true}}
             trackHeaders[track.id()]=title;trackControls+=title;head.addView(title,LinearLayout.LayoutParams(0,-2,1f))
-            fun toggle(label:String,value:Boolean,change:(Boolean)->WaveProject.Track){head.addView(CheckBox(this).apply{text=label;isChecked=value;setTextColor(0xffb4cbd3.toInt());isEnabled=canAct();tooltipText=if(label=="M")"Mute waveform" else "Solo waveform";contentDescription=tooltipText;setOnCheckedChangeListener{_,checked->if(canAct()){stop();history.apply(history.current().replace(change(checked)));changed()}}})}
-            toggle("M",track.mute()){track.settings(track.name(),track.offset(),track.gain(),track.pan(),it,track.solo(),track.route())}
-            toggle("S",track.solo()){track.settings(track.name(),track.offset(),track.gain(),track.pan(),track.mute(),it,track.route())}
+            fun toggle(label:String,value:Boolean){head.addView(CheckBox(this).apply{text=label;isChecked=value;setTextColor(0xffb4cbd3.toInt());isEnabled=canAct();tooltipText=if(label=="M")"Mute waveform during playback" else "Solo waveform during playback";contentDescription=tooltipText;setOnCheckedChangeListener{_,checked->if(canAct())setAudibility(track.id(),label=="M",checked)}})}
+            toggle("M",track.mute());toggle("S",track.solo())
             rows.addView(head)
             if(track.profile()==null&&track.audio().channels()>1){
                 val split=Button(this).apply{
@@ -225,7 +224,8 @@ class InfiniWaveActivity : Activity() {
             panMode->"Drag to pan • Pinch to zoom\nView %.2f–%.2f s".format(viewFrom,viewFrom+viewSeconds)
             else->"Editing only ${t.name().take(24)}\nDrag to select • Cursor %.3f s".format(from)
         }
-        waves.forEach{it.viewFrom=viewFrom;it.viewSeconds=viewSeconds;it.selectionFrom=from;it.selectionTo=to;it.trackSelected=it.track.id()==selected;it.invalidate()}
+        val live=playback?.takeIf{it.active};val playTime=live?.let{(it.mixer.startFrame()+it.frame).toDouble()/WaveProject.RATE}
+        waves.forEach{it.viewFrom=viewFrom;it.viewSeconds=viewSeconds;it.selectionFrom=from;it.selectionTo=to;it.trackSelected=it.track.id()==selected;it.playSeconds=playTime;it.invalidate()}
         updateControls()
     }
     private fun viewport()=TimelineViewport(viewFrom,viewSeconds)
@@ -561,14 +561,19 @@ class InfiniWaveActivity : Activity() {
     }
     private fun newWorkspace(){AlertDialog.Builder(this).setMessage("Start a new workspace? Save your project first if you want to keep it.").setNegativeButton("Cancel",null).setPositiveButton("New"){_,_->stop();history.apply(WaveProject());selected=null;from=0.0;to=0.0;fitView();changed()}.show()}
     private fun saveProject(){val p=history.current();val f=File.createTempFile("wave-project-",".iwave",cacheDir);job("Saving project",{try{f.outputStream().buffered().use{ProjectFile.write(p,it)};f}catch(e:Throwable){f.delete();throw e}}){save(it,"infiniwave-project.iwave","application/vnd.infiniforge.wave-project")}}
-    private fun about(){AlertDialog.Builder(this).setTitle("InfiniWave 0.4.0").setMessage("Multitrack editing, waveform effects and parameter-based synthesis. Original app/library code is MIT. Native cores: Nuked-OPL3 (LGPL-2.1+), chips m6581 (zlib), SAA1099 (BSD-3-Clause).\n\nSource and notices: github.com/infiniforge/infiniwave and github.com/infiniforge/libinfinisynth\n\nImported files stay untouched. Noise filters and gating are adjustable; learned-profile spectral denoising is not implemented.").setPositiveButton("Done",null).show()}
+    private fun about(){AlertDialog.Builder(this).setTitle("InfiniWave 0.4.1").setMessage("Multitrack editing, waveform effects and parameter-based synthesis. Original app/library code is MIT. Native cores: Nuked-OPL3 (LGPL-2.1+), chips m6581 (zlib), SAA1099 (BSD-3-Clause).\n\nSource and notices: github.com/infiniforge/infiniwave and github.com/infiniforge/libinfinisynth\n\nImported files stay untouched. Noise filters and gating are adjustable; learned-profile spectral denoising is not implemented.").setPositiveButton("Done",null).show()}
     private fun save(file:File,name:String,mime:String){
         try{val uri=InfiniSelect.createFileDocument(this,file,name,mime);pendingFile=file;savePending=true
             InfiniSelect.save(this,SaveRequest(clientId="infiniwave",displayName="InfiniWave",fileName=name,mimeType=mime,sourceUri=uri,sourceSizeBytes=file.length(),initialDirectory=directory),REQUEST_SAVE);refresh()
         }catch(e:Exception){savePending=false;pendingFile=null;file.delete();refresh();message(e.message?:"Save picker unavailable")}
     }
     private fun preparePeaks(p:WaveProject){p.tracks().forEach{t->if(peakCache[t.audio()]==null)peakCache[t.audio()]=WaveformView.Peaks.of(t.audio())}}
-    private fun changed(){stop();refresh();val p=history.current();worker.submit{try{val temp=File(filesDir,"workspace.next");temp.outputStream().buffered().use{ProjectFile.write(p,it)};Files.move(temp.toPath(),recovery.toPath(),StandardCopyOption.REPLACE_EXISTING,StandardCopyOption.ATOMIC_MOVE)}catch(e:Exception){runOnUiThread{if(!isDestroyed)message("Workspace backup failed: ${e.message}")}}}}
+    private fun setAudibility(id:String,muteControl:Boolean,checked:Boolean){
+        val p=history.current();val t=p.track(id)
+        val next=p.replace(t.settings(t.name(),t.offset(),t.gain(),t.pan(),if(muteControl)checked else t.mute(),if(muteControl)t.solo()else checked,t.route()))
+        history.apply(next);playback?.mixer?.update(next);changed(stopPlayback=false)
+    }
+    private fun changed(stopPlayback:Boolean=true){if(stopPlayback)stop();refresh();val p=history.current();worker.submit{try{val temp=File(filesDir,"workspace.next");temp.outputStream().buffered().use{ProjectFile.write(p,it)};Files.move(temp.toPath(),recovery.toPath(),StandardCopyOption.REPLACE_EXISTING,StandardCopyOption.ATOMIC_MOVE)}catch(e:Exception){runOnUiThread{if(!isDestroyed)message("Workspace backup failed: ${e.message}")}}}}
     private fun cancelJob(){jobGeneration++;task?.cancel(true);task=null;busy=false;refresh();message("Operation cancelled")}
     private fun <T> job(label:String,work:()->T,done:(T)->Unit){
         if(busy)return;stop();busy=true;refresh();status.text=label
@@ -580,37 +585,37 @@ class InfiniWaveActivity : Activity() {
     }
     private fun play(){
         if(playing){stop();return}
-        try{val (a,b)=renderRange();val p=history.current()
-            // Monitor named multichannel routes through the corresponding stereo side.
-            val monitor=WaveProject(p.tracks().map{t->if(t.route()>1)t.settings(t.name(),t.offset(),t.gain(),t.pan(),t.mute(),t.solo(),t.route()%2)else t})
-            job("Preparing playback",{monitor.mix(a,b,2)}){audio->startPlayback(audio,a.toDouble()/WaveProject.RATE)}
-        }catch(e:Exception){message(e.message?:"Playback unavailable")}
+        try{val(a,b)=renderRange();startPlayback(PlaybackMixer(history.current(),a,b))}
+        catch(e:Exception){message(e.message?:"Playback unavailable")}
     }
-    private fun startPlayback(audio:AudioBuffer,start:Double){
+    private fun startPlayback(mixer:PlaybackMixer){
         if(!resumed)return
-        val session=Playback();playback=session;updateControls()
+        val session=Playback(mixer);playback=session;updateControls()
         session.thread=Thread({
             var player:AudioTrack?=null
             try{
+                val minimum=AudioTrack.getMinBufferSize(WaveProject.RATE,AudioFormat.CHANNEL_OUT_STEREO,AudioFormat.ENCODING_PCM_FLOAT)
+                check(minimum>0){"Audio output unavailable"}
                 player=AudioTrack.Builder().setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build())
                     .setAudioFormat(AudioFormat.Builder().setSampleRate(WaveProject.RATE).setChannelMask(AudioFormat.CHANNEL_OUT_STEREO).setEncoding(AudioFormat.ENCODING_PCM_FLOAT).build())
-                    .setTransferMode(AudioTrack.MODE_STREAM).setBufferSizeInBytes(max(32768,AudioTrack.getMinBufferSize(WaveProject.RATE,AudioFormat.CHANNEL_OUT_STEREO,AudioFormat.ENCODING_PCM_FLOAT))).build()
+                    .setTransferMode(AudioTrack.MODE_STREAM).setBufferSizeInBytes(max(PlaybackMixer.CHUNK_FRAMES*2*4*2,minimum)).build()
                 session.player=player;check(player.state==AudioTrack.STATE_INITIALIZED){"Audio output unavailable"}
                 if(!session.active)return@Thread
-                player.play();val chunk=FloatArray(4096*2);var frame=0
-                while(session.active&&frame<audio.frames()){
-                    val count=min(4096,audio.frames()-frame);repeat(count){f->repeat(2){ch->chunk[f*2+ch]=audio.sample(frame+f,ch).coerceIn(-1f,1f)}}
-                    var offset=0;while(session.active&&offset<count*2){val n=player.write(chunk,offset,count*2-offset,AudioTrack.WRITE_NON_BLOCKING);check(n>=0){"Audio output write failed: $n"};if(n==0)Thread.sleep(5)else offset+=n}
-                    frame+=offset/2;session.frame=player.playbackHeadPosition
+                player.play()
+                while(session.active&&mixer.hasNext()){
+                    val chunk=mixer.next().samples();for(i in chunk.indices)chunk[i]=chunk[i].coerceIn(-1f,1f)
+                    var offset=0;while(session.active&&offset<chunk.size){val n=player.write(chunk,offset,chunk.size-offset,AudioTrack.WRITE_NON_BLOCKING);check(n>=0){"Audio output write failed: $n"};if(n==0)Thread.sleep(5)else offset+=n}
+                    session.frame=player.playbackHeadPosition
                 }
-                while(session.active&&player.playbackHeadPosition<audio.frames()){session.frame=player.playbackHeadPosition;Thread.sleep(10)}
+                val frames=mixer.endFrame()-mixer.startFrame()
+                while(session.active&&player.playbackHeadPosition<frames){session.frame=player.playbackHeadPosition;Thread.sleep(10)}
             }catch(e:Exception){if(session.active)runOnUiThread{if(!isDestroyed&&playback===session)message(e.message?:"Playback stopped")}}
             finally{
                 session.active=false;runCatching{player?.stop()};player?.release()
                 runOnUiThread{if(playback===session){playback=null;updateControls();waves.forEach{it.playSeconds=null;it.invalidate()}}}
             }
         },"InfiniWavePlayback").apply{start()}
-        handler.post(object:Runnable{override fun run(){if(playback!==session||!session.active||isDestroyed)return;waves.forEach{it.playSeconds=start+session.frame.toDouble()/WaveProject.RATE;it.invalidate()};handler.postDelayed(this,40)}})
+        handler.post(object:Runnable{override fun run(){if(playback!==session||!session.active||isDestroyed)return;waves.forEach{it.playSeconds=(mixer.startFrame()+session.frame).toDouble()/WaveProject.RATE;it.invalidate()};handler.postDelayed(this,40)}})
     }
     private fun stop(){
         val previous=playback;playback=null;previous?.active=false

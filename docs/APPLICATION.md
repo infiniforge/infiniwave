@@ -4,7 +4,7 @@ InfiniWave owns an Android audio editor and sound-generation workspace. Its mode
 is Audacity: several waveforms on a shared time axis, editable selections and
 independent tracks/channels. It remains independently installable and buildable.
 
-Implemented in 0.4.0: importing multiple audio files, channel-lane waveform previews,
+Implemented in 0.4.1: importing multiple audio files, channel-lane waveform previews,
 time selections, zoom/pan/reset-to-fit, playback, track gain/pan/offset/mute/solo,
 explicit destination channels, duplicate/remove, split to mono, combine mono as
 channels, chosen-track mono mixdown, stereo mixdown, copy/cut/paste, delete/trim/silence/reverse/normalize/fades,
@@ -12,6 +12,13 @@ undo/redo, project save/open/recovery, and mono/stereo/multichannel PCM16 WAV ex
 There is no fixed track limit; a workspace allows 32 million unique float samples,
 a clip/render 16 million, and an output clip up to 32 channels. Long material must
 be shortened or exported; disk-backed streaming editing is future work.
+
+Mute and Solo can be toggled while playback continues at the same timeline
+position. Playback mixes short blocks from the latest project settings instead
+of pre-rendering the entire range. Muting all audible tracks produces silence
+until the original range ends; unmuting resumes at the current time. Already
+queued device audio can add a short delay. Mute/solo changes still enter history
+and recovery; other edits and lifecycle stops keep their existing behavior.
 
 Generation supports arbitrary FM matrices with per-operator DAHDSR envelopes,
 ratio/fixed frequency/detune/phase/waveform/pulse-width/level, carrier weights,

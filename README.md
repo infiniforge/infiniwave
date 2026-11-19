@@ -1,6 +1,6 @@
 # InfiniWave
 
-InfiniWave 0.4.0 is an independent Android multitrack audio editor and sound-design
+InfiniWave 0.4.1 is an independent Android multitrack audio editor and sound-design
 workspace, inspired by Audacity. Import several files or generate sounds; each
 track appears on a shared timeline with separate channel lanes. There is no fixed
 workspace track count; memory/render budgets still apply.
@@ -27,7 +27,10 @@ Effects includes polarity inversion, reverse, fades, configurable peak normaliza
 (with linked channels/DC removal), low/high-pass filters, 50/60 Hz hum notch filters,
 and a configurable linked noise gate. Effects use highlighted time, or the whole
 waveform when no range is selected. Tracks retain gain, pan, timing, mute/solo and
-routing. Copy/cut/paste, trim, silence, playback, undo/redo and PCM16 WAV export remain.
+routing. **Mute (M) and Solo (S) update during playback without stopping or
+rewinding it**, including when every track becomes silent. They remain undoable
+and saved in the project. Copy/cut/paste, trim, silence, playback, undo/redo and
+PCM16 WAV export remain.
 
 Generate creates editable FM (1/2/4/6/8 operators), OPL3 (2/4 operators), SID 6581
 and CMS/Game Blaster profiles, with waveform previews. Generate → Profile tools reopens parameters, saves/loads JSON, or renders a
