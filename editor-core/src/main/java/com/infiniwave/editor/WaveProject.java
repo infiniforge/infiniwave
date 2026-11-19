@@ -76,9 +76,30 @@ public final class WaveProject {
         }
         return replace(t.withAudio(new AudioBuffer(RATE,channels,output),offset));
     }
-    public WaveProject splitChannels(String id){
-        Track t=track(id);requireAudio(t);if(t.audio.channels()<2)throw new IllegalArgumentException("This track is already mono");List<Track> list=new ArrayList<>(tracks);int at=index(id);list.remove(at);
-        for(int ch=0;ch<t.audio.channels();ch++)list.add(at+ch,new Track(UUID.randomUUID().toString(),t.name+" · channel "+(ch+1),t.audio.channel(ch),t.offset,t.gain,0,t.mute,t.solo,ch));
+    @FunctionalInterface public interface AudioOperation {
+        AudioBuffer apply(AudioBuffer input,int firstFrame,int endFrame) throws InterruptedIOException;
+    }
+    /** An effect changes only PCM; track identity, timing and mixer/profile rules remain owned here. */
+    public WaveProject process(String id,int from,int to,AudioOperation operation) throws InterruptedIOException {
+        Track t=track(id);requireAudio(t);
+        int first=Math.max(0,Math.min(t.audio.frames(),from-t.offset));
+        int end=Math.max(0,Math.min(t.audio.frames(),to-t.offset));
+        if(end<=first)throw new IllegalArgumentException("Select a time range overlapping the waveform");
+        AudioBuffer result=Objects.requireNonNull(operation.apply(t.audio,first,end));
+        if(result.sampleRate()!=RATE||result.channels()!=t.audio.channels()||result.frames()!=t.audio.frames())throw new IllegalArgumentException("An effect must preserve sample rate, channels and duration");
+        return replace(t.withAudio(result,t.offset));
+    }
+    public WaveProject splitChannels(String id) throws InterruptedIOException {
+        Track t=track(id);requireAudio(t);
+        if(t.audio.channels()<2)throw new IllegalArgumentException("This waveform is already mono");
+        List<Track> list=new ArrayList<>(tracks);int at=index(id);list.remove(at);
+        for(int ch=0;ch<t.audio.channels();ch++) {
+            if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("Channel split cancelled");
+            String channel=t.audio.channels()==2?(ch==0?"Left":"Right"):"Channel "+(ch+1);
+            double balance=ch==0?Math.min(1,1-t.pan):ch==1?Math.min(1,1+t.pan):1;
+            double gain=t.route>=0?t.gain/t.audio.channels():t.gain*balance;
+            list.add(at+ch,new Track(UUID.randomUUID().toString(),t.name+" · "+channel,t.audio.channel(ch),t.offset,gain,0,t.mute,t.solo,t.route>=0?t.route:ch));
+        }
         return new WaveProject(list);
     }
     /** Render only requested frames; individual routes select a destination channel. */
@@ -100,11 +121,27 @@ public final class WaveProject {
         }
         return new AudioBuffer(RATE,channels,output);
     }
-    public WaveProject combineAsChannels() {
-        if(tracks.isEmpty()||tracks.size()>32)throw new IllegalArgumentException("Choose 1..32 mono tracks for a multichannel clip; the workspace itself has no track-count limit");
-        if((long)endFrame()*tracks.size()>AudioBuffer.MAX_SAMPLES)throw new IllegalArgumentException("Combined clip exceeds PCM budget");
-        int n=tracks.size();float[] output=new float[endFrame()*n];
-        for(int i=0;i<n;i++){Track t=tracks.get(i);if(t.audio.channels()!=1)throw new IllegalArgumentException("Split tracks to mono before combining channels");for(int f=0;f<t.audio.frames();f++)output[(f+t.offset)*n+i]=(float)(t.audio.sample(f,0)*t.gain);}
-        return new WaveProject().add("Combined channels",new AudioBuffer(RATE,n,output),0);
+    /** Assign chosen mono waveforms to separate output channels, preserving every unrelated track. */
+    public WaveProject combineChannels(List<String> ids,String name) throws InterruptedIOException {
+        if(ids.isEmpty()||ids.size()>32||new HashSet<>(ids).size()!=ids.size())throw new IllegalArgumentException("Choose 1..32 different mono waveforms");
+        List<Track> chosen=new ArrayList<>();int start=Integer.MAX_VALUE,end=0,insert=tracks.size();boolean solo=false;
+        for(String id:ids){Track t=track(id);requireAudio(t);if(t.audio.channels()!=1)throw new IllegalArgumentException("Split multichannel waveforms to mono first");chosen.add(t);start=Math.min(start,t.offset);end=Math.max(end,t.offset+t.audio.frames());insert=Math.min(insert,index(id));solo|=t.solo;}
+        int n=chosen.size(),frames=end-start;
+        if((long)frames*n>AudioBuffer.MAX_SAMPLES)throw new IllegalArgumentException("Combined waveform exceeds PCM budget");
+        float[] output=new float[frames*n];
+        for(int ch=0;ch<n;ch++){
+            Track t=chosen.get(ch);if(t.mute||solo&&!t.solo)continue;
+            for(int f=0;f<t.audio.frames();f++){
+                if((f&1023)==0&&Thread.currentThread().isInterrupted())throw new InterruptedIOException("Channel combine cancelled");
+                output[(f+t.offset-start)*n+ch]=(float)(t.audio.sample(f,0)*t.gain);
+            }
+        }
+        Set<String> removed=new HashSet<>(ids);List<Track> list=new ArrayList<>();
+        Track combined=new Track(UUID.randomUUID().toString(),name,new AudioBuffer(RATE,n,output),start,1,0,false,solo,-1);
+        for(int i=0;i<tracks.size();i++){if(i==insert)list.add(combined);if(!removed.contains(tracks.get(i).id))list.add(tracks.get(i));}
+        return new WaveProject(list);
+    }
+    public WaveProject combineAsChannels() throws InterruptedIOException {
+        List<String> ids=new ArrayList<>();for(Track t:tracks)ids.add(t.id);return combineChannels(ids,"Combined channels");
     }
 }

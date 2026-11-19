@@ -1,13 +1,14 @@
 # Rendering profiles
 
 FM, OPL3, SID6581 and CMS profiles are shown alongside audio waveform tracks. Their
-waveform is an offline render preview. Select a profile and press Edit (or Tracks →
-Edit profile parameters) to reopen its controls; Apply parameters renders a new
+waveform is an offline render preview. Select a profile and use Tracks → Edit profile parameters (or Generate →
+Profile tools → Edit selected profile) to reopen its controls; Apply parameters renders a new
 preview while retaining track settings. Undo restores both settings and preview.
-Use Tracks → Render selected profile to audio to enable sample edits on its output.
+Use the selection bar’s Render to audio action or Generate → Profile tools →
+Render profile to audio to enable sample edits on its output.
 
-Tracks → Save selected profile JSON exports .iwprofile.json through the normal save
-picker. Tracks → Load profile JSON opens a saved profile in its parameter editor;
+Generate → Profile tools → Save profile JSON exports .iwprofile.json through the normal save
+picker. Generate → Profile tools → Load profile JSON opens a saved profile in its parameter editor;
 applying adds it as a new track at the cursor. Existing tracks are preserved.
 A project embeds each track's parameters and PCM cache; a standalone JSON profile
 has no PCM, source paths, executable expressions or bank references.

@@ -1,21 +1,30 @@
 # InfiniWave
 
-InfiniWave 0.2.0 is an independent Android multitrack audio editor and sound-design
+InfiniWave 0.3.0 is an independent Android multitrack audio editor and sound-design
 workspace, inspired by Audacity. Import several files or generate sounds; each
 track appears on a shared timeline with separate channel lanes. There is no fixed
 workspace track count; memory/render budgets still apply.
 
-Drag to select time, pinch or use buttons to zoom, and use Edit for copy/cut/paste,
-delete, trim, silence, reverse, normalize and fades. Tracks support gain, pan,
-offset, mute, solo and channel routing. Split multichannel audio into mono tracks,
-combine mono tracks into independent channels, or mix audible tracks to stereo.
-Undo/redo retains immutable snapshots. Playback and PCM16 WAV export are available.
+The interface uses a compact document toolbar, a persistent selection/Delete bar,
+and bottom tools with navigable Back/Close dialogs, following InfiniCanvas's layout.
+Drag across sound, then press **Delete selection** to remove it and close the gap
+in that waveform. Undo restores it. Pinch with two fingers to zoom without changing
+the selection; View switches one-finger dragging between selection and timeline pan.
+
+Channels → **Split Left / Right** creates separate mono waveforms. **Recombine
+Left + Right** assigns any chosen pair to stereo while preserving other tracks.
+Multiple chosen mono waveforms can also become independent output channels.
+
+Effects includes polarity inversion, reverse, fades, configurable peak normalization
+(with linked channels/DC removal), low/high-pass filters, 50/60 Hz hum notch filters,
+and a configurable linked noise gate. Effects use highlighted time, or the whole
+waveform when no range is selected. Tracks retain gain, pan, timing, mute/solo and
+routing. Copy/cut/paste, trim, silence, playback, undo/redo and PCM16 WAV export remain.
 
 Generate creates editable FM (1/2/4/6/8 operators), OPL3 (2/4 operators), SID 6581
-and CMS/Game Blaster profiles, with waveform previews. Edit reopens their parameter
-controls and re-renders the preview. Tracks → Render selected profile to audio
-allows ordinary sample edits. Tracks also saves/loads reusable versioned JSON
-profiles. Projects preserve both parameters and render caches. SF2 banks can supply
+and CMS/Game Blaster profiles, with waveform previews. Generate → Profile tools reopens parameters, saves/loads JSON, or renders a
+profile to audio. The selection bar also offers Render to audio for profiles,
+followed by the ordinary Delete selection control. Profiles remain undoable. Projects preserve both parameters and render caches. SF2 banks can supply
 original samples or pitched/looped/enveloped sample waveforms; banks are not bundled.
 
 Import/export use libinfiniselect, with optional InfiniFolder integration and
@@ -45,5 +54,6 @@ The transparent icon base is `artwork/wave.svg` / `wave.png`. Run
 suite compositor's density assets; it combines the base with the shared Infini
 emblem and outline, following InfiniFolder's established method.
 
+[Editing guide](docs/editing.md) · [Validation](docs/validation.md) ·
 [Application behavior](docs/APPLICATION.md) · [Architecture](docs/architecture.md) ·
 [Storage](docs/storage.md) · [JSON profiles](docs/profiles.md) · [Documentation](docs/README.md)

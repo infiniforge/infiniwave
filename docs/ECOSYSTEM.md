@@ -82,9 +82,9 @@ The inventory contains 10 applications (6 with standalone builds and 4 planned p
 
 #### [infiniwave](https://github.com/infiniforge/infiniwave)
 
-**State:** active · **Build:** standalone app build · **Versions:** no published release verified; build declares `0.2.0`
+**State:** active · **Build:** standalone app build · **Versions:** no published release verified; build declares `0.3.0`
 
-**Purpose:** Standalone Android multitrack audio editor and parameter-based sound-design workspace inspired by Audacity. Owns waveform editing, timeline/track/channel UI, playback, immutable projects and undo history, recovery, versioned JSON rendering profiles and SAF exports. libinfinisynth owns FM, SF2 sample extraction/rendering, OPL3, SID 6581 and dual-SAA1099 CMS synthesis; libinfinisound owns portable decoding. Infinifolder remains optional. Recording, plugin effects, automation and complete Audacity parity remain planned.
+**Purpose:** Standalone Android multitrack audio editor and parameter-based sound-design workspace inspired by Audacity. Owns multitrack waveform editing, compact toolbars and navigable tool dialogs, selection deletion, anchored pinch zoom, chosen-channel split/recombine, playback, immutable projects and history, recovery, versioned JSON synthesis profiles and SAF exports. Uses libinfinisound for portable decoding and PCM effects (polarity, peak/DC normalization, filters and gating), and libinfinisynth for synthesis. Infinifolder remains optional. Recording, plugin effects, spectral denoising, automation and complete Audacity parity remain planned.
 
 **Pinned source dependency closure:** [libinfiniselect](https://github.com/infiniforge/libinfiniselect), [libinfinisound](https://github.com/infiniforge/libinfinisound), [libinfinistream](https://github.com/infiniforge/libinfinistream), [libinfinisynth](https://github.com/infiniforge/libinfinisynth)
 
@@ -92,7 +92,7 @@ The inventory contains 10 applications (6 with standalone builds and 4 planned p
 
 **Optional/runtime integrations:** [infinifolder](https://github.com/infiniforge/infinifolder)
 
-**Public API and architecture documentation:** [APPLICATION.md](https://github.com/infiniforge/infiniwave/blob/main/docs/APPLICATION.md), [architecture.md](https://github.com/infiniforge/infiniwave/blob/main/docs/architecture.md), [storage.md](https://github.com/infiniforge/infiniwave/blob/main/docs/storage.md), [profiles.md](https://github.com/infiniforge/infiniwave/blob/main/docs/profiles.md)
+**Public API and architecture documentation:** [APPLICATION.md](https://github.com/infiniforge/infiniwave/blob/main/docs/APPLICATION.md), [architecture.md](https://github.com/infiniforge/infiniwave/blob/main/docs/architecture.md), [storage.md](https://github.com/infiniforge/infiniwave/blob/main/docs/storage.md), [profiles.md](https://github.com/infiniforge/infiniwave/blob/main/docs/profiles.md), [editing.md](https://github.com/infiniforge/infiniwave/blob/main/docs/editing.md), [validation.md](https://github.com/infiniforge/infiniwave/blob/main/docs/validation.md)
 
 #### [infinitrack](https://github.com/infiniforge/infinitrack)
 
@@ -224,9 +224,9 @@ The inventory contains 10 applications (6 with standalone builds and 4 planned p
 
 #### [libinfinisound](https://github.com/infiniforge/libinfinisound)
 
-**State:** active · **Build:** standalone library build · **Versions:** no published release verified; build declares `0.2.0`
+**State:** active · **Build:** standalone library build · **Versions:** no published release verified; build declares `0.2.1`
 
-**Purpose:** Reusable audio parsing, decoding, synthesis, metadata, playlists, and signal processing. Owns shared audio processing and PCM APIs, portable decoders and synthesis, Android media adapters, and audio capability discovery. Consuming applications own playback UI, queues, and app state.
+**Purpose:** Reusable audio parsing, decoding, synthesis, metadata, playlists, and signal processing. Owns shared audio processing and PCM APIs, portable decoders and synthesis, Android media adapters, and audio capability discovery. Consuming applications own playback UI, queues, and app state. Portable PcmEffects exposes immutable selection polarity/normalization, low/high-pass and notch filtering, and linked noise gating; hosts own editing/history/selection UI.
 
 **Pinned source dependency closure:** [libinfinistream](https://github.com/infiniforge/libinfinistream)
 
@@ -234,7 +234,7 @@ The inventory contains 10 applications (6 with standalone builds and 4 planned p
 
 **Optional/runtime integrations:** None recorded
 
-**Public API and architecture documentation:** [README.md](https://github.com/infiniforge/libinfinisound/blob/main/README.md), [CAPABILITIES.md](https://github.com/infiniforge/libinfinisound/blob/main/CAPABILITIES.md), [architecture.md](https://github.com/infiniforge/libinfinisound/blob/main/docs/architecture.md), [third-party.md](https://github.com/infiniforge/libinfinisound/blob/main/docs/third-party.md)
+**Public API and architecture documentation:** [README.md](https://github.com/infiniforge/libinfinisound/blob/main/README.md), [CAPABILITIES.md](https://github.com/infiniforge/libinfinisound/blob/main/CAPABILITIES.md), [architecture.md](https://github.com/infiniforge/libinfinisound/blob/main/docs/architecture.md), [third-party.md](https://github.com/infiniforge/libinfinisound/blob/main/docs/third-party.md), [pcm-effects.md](https://github.com/infiniforge/libinfinisound/blob/main/docs/pcm-effects.md)
 
 #### [libinfinistore](https://github.com/infiniforge/libinfinistore)
 

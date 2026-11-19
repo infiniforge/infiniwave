@@ -4,7 +4,31 @@ The app owns UI, lifecycle, playback, clipboard, projects, profile serialization
 undo/redo and editing workflows. `editor-core` is app-owned Java without Android;
 its immutable WaveProject contains tracks with immutable AudioBuffer PCM and
 optional RenderProfile settings. Track identity, offset, routing and mixer settings
-are independent of source channel layout. Native Android views draw precomputed
+are independent of source channel layout. A compact document toolbar and bottom tools mirror the interaction pattern of
+InfiniCanvas, with app-owned vector icons and WaveToolSheet's Back/Close page stack.
+No sibling app source, resources or build output are imported. Numeric settings
+remain separate validated dialogs above tool pages. The persistent selection bar
+exposes deletion and profile-to-audio conversion. Available controls follow actual
+selection, profile, clipboard, history and worker state.
+
+WaveformTouch previews a one-finger drag locally and commits selection only at
+finger-up. Any multitouch discards that preview and suppresses selection until a
+fresh gesture. TimelineViewport handles bounded pinch-focus zoom and pan geometry
+for shared waveform views; zoom never commits time selection. Gesture regressions
+run without Android, against the same models used by WaveformView.
+
+WaveProject.process clips global selections to local frames, preserves track
+identity/settings/duration, and rejects direct processing of profiles. libinfinisound
+PcmEffects owns inversion, normalization, filters and gating; it receives a copied
+float array and returns new samples. All effects run on the worker and pass through
+the same history, peak-cache, cancellation and recovery path as other edits.
+
+combineChannels takes explicit ordered mono track IDs. It preserves unrelated
+tracks, bakes selected gains/mute/solo choices, retains relative offsets and inserts
+a new multichannel waveform at the earliest selected position. Split preserves
+stereo balance/routing and creates named Left/Right waveforms for stereo input.
+
+Native Android views draw precomputed
 peak caches, with one shared time selection/viewport and vertically scrolling tracks.
 
 A profile is authoritative parameters plus a replaceable PCM preview. GeneratorDialog
