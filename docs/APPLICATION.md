@@ -4,10 +4,10 @@ InfiniWave owns an Android audio editor and sound-generation workspace. Its mode
 is Audacity: several waveforms on a shared time axis, editable selections and
 independent tracks/channels. It remains independently installable and buildable.
 
-Implemented in 0.3.1: importing multiple audio files, channel-lane waveform previews,
+Implemented in 0.4.0: importing multiple audio files, channel-lane waveform previews,
 time selections, zoom/pan/reset-to-fit, playback, track gain/pan/offset/mute/solo,
 explicit destination channels, duplicate/remove, split to mono, combine mono as
-channels, stereo mixdown, copy/cut/paste, delete/trim/silence/reverse/normalize/fades,
+channels, chosen-track mono mixdown, stereo mixdown, copy/cut/paste, delete/trim/silence/reverse/normalize/fades,
 undo/redo, project save/open/recovery, and mono/stereo/multichannel PCM16 WAV export.
 There is no fixed track limit; a workspace allows 32 million unique float samples,
 a clip/render 16 million, and an output clip up to 32 channels. Long material must
@@ -34,11 +34,19 @@ Horizontal, vertical and diagonal finger separation drives zoom; translating bot
 fingers pans. The workspace retains the gesture until all fingers lift. View also
 offers drag-to-pan and fit controls.
 
+Every waveform has an Edit radio control, and committed selection highlights
+appear only on the active waveform. Effects and sample edits target only its ID.
+Stereo headers expose Split Left / Right for independent editing directly.
 Channels splits stereo into named Left/Right mono waveforms, preserving audible
 levels and routes. Recombining chosen mono waveforms bakes their gains and mute/solo
 choices into output channels, starts at their earliest offset, and preserves every
 unrelated track. Channel order is explicit for stereo, workspace order for multiple
-channels. These operations are undoable and retain original PCM in history.
+channels. Mix chosen to mono instead sums checked mono waveforms into one channel,
+ignoring output routing/pan, and preserves unrelated tracks. It renders complete
+source lengths with gains and chosen mute/solo flags; averaging divides by checked
+count by default and can be disabled. Split → Edit Right → select whole waveform →
+Invert polarity → Mix chosen to mono produces a stereo difference. These operations
+are undoable and retain original PCM in history.
 
 Effects include inversion of polarity (independent of time reversal), configurable
 peak normalization (-60..0 dBFS), optional per-channel DC removal and linked channel

@@ -49,8 +49,9 @@ class WaveformView(context: Context) : View(context) {
         super.onDraw(canvas);canvas.drawColor(if(trackSelected)0xff182d3b.toInt() else 0xff14222d.toInt())
         val pending=touch.preview();val a=pending?.from()?:selectionFrom;val b=pending?.to()?:selectionTo
         val x0=((a-viewFrom)/viewSeconds*width).toFloat();val x1=((b-viewFrom)/viewSeconds*width).toFloat()
-        paint.color=0x553babb2;canvas.drawRect(x0,0f,x1,height.toFloat(),paint)
-        if(trackSelected&&b>a){paint.color=0xffffc777.toInt();paint.strokeWidth=2*resources.displayMetrics.density;canvas.drawLine(x0,0f,x0,height.toFloat(),paint);canvas.drawLine(x1,0f,x1,height.toFloat(),paint);paint.strokeWidth=1f}
+        val showSelection=trackSelected||pending!=null
+        if(showSelection){paint.color=0x553babb2;canvas.drawRect(x0,0f,x1,height.toFloat(),paint)}
+        if(showSelection&&b>a){paint.color=0xffffc777.toInt();paint.strokeWidth=2*resources.displayMetrics.density;canvas.drawLine(x0,0f,x0,height.toFloat(),paint);canvas.drawLine(x1,0f,x1,height.toFloat(),paint);paint.strokeWidth=1f}
         paint.textSize=12*resources.displayMetrics.scaledDensity
         for(i in 0..5){val x=width*i/5f;paint.color=0xff314956.toInt();canvas.drawLine(x,0f,x,height.toFloat(),paint);paint.color=0xff96abb7.toInt();canvas.drawText("%.2fs".format(viewFrom+viewSeconds*i/5),x+4,paint.textSize+3,paint)}
         val p=peaks?:return

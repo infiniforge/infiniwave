@@ -9,7 +9,9 @@ InfiniCanvas, with app-owned vector icons and WaveToolSheet's Back/Close page st
 No sibling app source, resources or build output are imported. Numeric settings
 remain separate validated dialogs above tool pages. The persistent selection bar
 exposes deletion and profile-to-audio conversion. Available controls follow actual
-selection, profile, clipboard, history and worker state.
+selection, profile, clipboard, history and worker state. Per-waveform Edit selectors
+reflect the one active track ID; changing the active track updates header and
+selection highlights without rebuilding the workspace or changing its scroll.
 
 WaveformTouch previews a one-finger drag locally and commits selection only at
 finger-up. Any multitouch discards that preview and suppresses selection until a
@@ -31,6 +33,14 @@ combineChannels takes explicit ordered mono track IDs. It preserves unrelated
 tracks, bakes selected gains/mute/solo choices, retains relative offsets and inserts
 a new multichannel waveform at the earliest selected position. Split preserves
 stereo balance/routing and creates named Left/Right waveforms for stereo input.
+
+mixToMono takes explicit chosen mono track IDs. It scopes the existing project
+mixer to those tracks, forces destination 0 and neutral pan, and optionally divides
+gains by chosen count. Thus split Right's output-channel-2 route folds into mono.
+Only selected mute/solo flags affect the render. It preserves offsets, inserts the
+mono result at the first replaced row and retains every unrelated track unchanged.
+Both mix paths preserve immutable sources, enforce PCM budgets, observe cancellation
+and return new projects for history/recovery; no new storage format is needed.
 
 Native Android views draw precomputed
 peak caches, with one shared time selection/viewport and vertically scrolling tracks.

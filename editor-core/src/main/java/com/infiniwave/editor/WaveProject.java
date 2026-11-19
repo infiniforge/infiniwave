@@ -141,6 +141,23 @@ public final class WaveProject {
         for(int i=0;i<tracks.size();i++){if(i==insert)list.add(combined);if(!removed.contains(tracks.get(i).id))list.add(tracks.get(i));}
         return new WaveProject(list);
     }
+    /** Mix only chosen mono tracks, folding explicit output routes into one channel. */
+    public WaveProject mixToMono(List<String> ids,String name,boolean average) throws InterruptedIOException {
+        if(ids.size()<2||new HashSet<>(ids).size()!=ids.size())throw new IllegalArgumentException("Choose at least two different mono waveforms");
+        List<Track> chosen=new ArrayList<>();int start=Integer.MAX_VALUE,end=0,insert=tracks.size();boolean solo=false;
+        for(String id:ids){
+            Track t=track(id);requireAudio(t);
+            if(t.audio.channels()!=1)throw new IllegalArgumentException("Split multichannel waveforms to mono first");
+            // Pan and destination routes do not apply when folding into a single channel.
+            chosen.add(t.settings(t.name,t.offset,t.gain/(average?ids.size():1),0,t.mute,t.solo,0));
+            start=Math.min(start,t.offset);end=Math.max(end,t.offset+t.audio.frames());insert=Math.min(insert,index(id));solo|=t.solo;
+        }
+        AudioBuffer audio=new WaveProject(chosen).mix(start,end,1);
+        Track mixed=new Track(UUID.randomUUID().toString(),name,audio,start,1,0,false,solo,-1);
+        Set<String> removed=new HashSet<>(ids);List<Track> list=new ArrayList<>();
+        for(int i=0;i<tracks.size();i++){if(i==insert)list.add(mixed);if(!removed.contains(tracks.get(i).id))list.add(tracks.get(i));}
+        return new WaveProject(list);
+    }
     public WaveProject combineAsChannels() throws InterruptedIOException {
         List<String> ids=new ArrayList<>();for(Track t:tracks)ids.add(t.id);return combineChannels(ids,"Combined channels");
     }

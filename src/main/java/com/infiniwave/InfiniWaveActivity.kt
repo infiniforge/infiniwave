@@ -55,6 +55,9 @@ class InfiniWaveActivity : Activity() {
     private var activeTool:String?=null
     private var panMode=false
     private val waves=mutableListOf<WaveformView>()
+    private val editSelectors=mutableMapOf<String,RadioButton>()
+    private val trackHeaders=mutableMapOf<String,Button>()
+    private val trackControls=mutableListOf<View>()
     private var selected:String?=null
     private var from=0.0
     private var to=0.0
@@ -160,7 +163,9 @@ class InfiniWaveActivity : Activity() {
     private fun selectionFrames():Pair<Int,Int> {val t=selectedTrack()?:return Pair(0,0);return Pair(max(t.offset(),(from*WaveProject.RATE).roundToInt()),min(t.offset()+t.audio().frames(),(to*WaveProject.RATE).roundToInt()))}
     private fun hasSelection():Boolean{val(a,b)=selectionFrames();return to>from&&b>a}
     private fun updateControls(){
-        val allowed=canAct();controls.forEach{it.isEnabled=allowed}
+        val allowed=canAct();controls.forEach{it.isEnabled=allowed};trackControls.forEach{it.isEnabled=allowed}
+        editSelectors.forEach{(id,button)->button.isChecked=id==selected}
+        trackHeaders.forEach{(id,button)->button.backgroundTintList=ColorStateList.valueOf(if(id==selected)WaveUi.raised else WaveUi.surface)}
         undoButton.isEnabled=allowed&&history.canUndo();redoButton.isEnabled=allowed&&history.canRedo()
         val profile=selectedTrack()?.profile()!=null
         deleteButton.text=if(profile)"Render to audio" else "Delete selection"
@@ -176,15 +181,28 @@ class InfiniWaveActivity : Activity() {
     private fun refresh(){
         if(isDestroyed)return
         val p=history.current();if(p.tracks().none{it.id()==selected})selected=p.tracks().firstOrNull()?.id()
-        rows.removeAllViews();waves.clear()
+        rows.removeAllViews();waves.clear();editSelectors.clear();trackHeaders.clear();trackControls.clear()
         if(p.tracks().isEmpty())rows.addView(TextView(this).apply{text="Your audio workspace\n\nImport several files, generate a sound, or pull a sample from a SoundFont. Each becomes a separate waveform track.\n\nDrag across a waveform, then press Delete selection to remove that sound. Pinch with two fingers to zoom.\n\nUse Effects for inversion, noise filtering and normalization. Use Channels to split Left/Right and recombine chosen waveforms.";setTextColor(0xff98b4c0.toInt());textSize=18f;setPadding(dp(16),dp(30),dp(16),dp(20))})
         p.tracks().forEach{track->
             val head=LinearLayout(this).apply{gravity=Gravity.CENTER_VERTICAL;setPadding(0,dp(10),0,0)}
-            head.addView(Button(this).apply{text="${track.name()}  ·  ${track.profile()?.engine()?.name?.plus(" profile")?:"audio"}  ·  ${track.audio().channels()} ch";textSize=13f;setTextColor(WaveUi.text);isAllCaps=false;backgroundTintList=ColorStateList.valueOf(if(track.id()==selected)WaveUi.raised else WaveUi.surface);setOnClickListener{if(canAct()){selected=track.id();refresh()}};setOnLongClickListener{if(canAct()){selected=track.id();refresh();openTool("tracks")};true}},LinearLayout.LayoutParams(0,-2,1f))
+            val edit=RadioButton(this).apply{
+                text="Edit";setTextColor(WaveUi.text);minHeight=dp(48);isChecked=track.id()==selected
+                contentDescription="Edit only ${track.name()}";buttonTintList=ColorStateList.valueOf(WaveUi.accent)
+                setOnClickListener{if(canAct()){selected=track.id();refreshWaves();toolSheet?.refresh()}}
+            };editSelectors[track.id()]=edit;trackControls+=edit;head.addView(edit)
+            val title=Button(this).apply{text="${track.name()}  ·  ${track.profile()?.engine()?.name?.plus(" profile")?:"audio"}  ·  ${track.audio().channels()} ch";textSize=13f;setTextColor(WaveUi.text);isAllCaps=false;backgroundTintList=ColorStateList.valueOf(if(track.id()==selected)WaveUi.raised else WaveUi.surface);setOnClickListener{if(canAct()){selected=track.id();refreshWaves();toolSheet?.refresh()}};setOnLongClickListener{if(canAct()){selected=track.id();refreshWaves();openTool("tracks")};true}}
+            trackHeaders[track.id()]=title;trackControls+=title;head.addView(title,LinearLayout.LayoutParams(0,-2,1f))
             fun toggle(label:String,value:Boolean,change:(Boolean)->WaveProject.Track){head.addView(CheckBox(this).apply{text=label;isChecked=value;setTextColor(0xffb4cbd3.toInt());isEnabled=canAct();tooltipText=if(label=="M")"Mute waveform" else "Solo waveform";contentDescription=tooltipText;setOnCheckedChangeListener{_,checked->if(canAct()){stop();history.apply(history.current().replace(change(checked)));changed()}}})}
             toggle("M",track.mute()){track.settings(track.name(),track.offset(),track.gain(),track.pan(),it,track.solo(),track.route())}
             toggle("S",track.solo()){track.settings(track.name(),track.offset(),track.gain(),track.pan(),track.mute(),it,track.route())}
             rows.addView(head)
+            if(track.profile()==null&&track.audio().channels()>1){
+                val split=Button(this).apply{
+                    text=if(track.audio().channels()==2)"Split Left / Right to edit separately" else "Split channels to edit separately"
+                    isAllCaps=false;textSize=12f;minHeight=dp(48);setTextColor(WaveUi.accent);backgroundTintList=ColorStateList.valueOf(WaveUi.surface)
+                    setOnClickListener{runAction{selected=track.id();splitChannels()}}
+                };trackControls+=split;rows.addView(split,LinearLayout.LayoutParams(-1,-2))
+            }
             rows.addView(TextView(this).apply{text="%.2fs start  ·  %.2fs audio  ·  %.1f dB  ·  %s".format(track.offset().toDouble()/WaveProject.RATE,track.audio().seconds(),20*log10(max(.00001,track.gain())),if(track.route()<0)"pan %.2f".format(track.pan()) else "output ${track.route()+1}");setTextColor(0xff8fadb9.toInt());textSize=12f})
             val wave=WaveformView(this).apply{
                 this.track=track;peaks=peakCache[track.audio()];trackSelected=track.id()==this@InfiniWaveActivity.selected
@@ -205,7 +223,7 @@ class InfiniWaveActivity : Activity() {
             to>from&&hasSelection()->"${t.name().take(24)} · %.3f–%.3f s\nHighlighted audio • Delete closes the gap".format(from,to)
             to>from->"Selection misses this waveform\nUse Select → Whole waveform"
             panMode->"Drag to pan • Pinch to zoom\nView %.2f–%.2f s".format(viewFrom,viewFrom+viewSeconds)
-            else->"Drag across sound, then Delete selection\nCursor %.3f s • Pinch to zoom".format(from)
+            else->"Editing only ${t.name().take(24)}\nDrag to select • Cursor %.3f s".format(from)
         }
         waves.forEach{it.viewFrom=viewFrom;it.viewSeconds=viewSeconds;it.selectionFrom=from;it.selectionTo=to;it.trackSelected=it.track.id()==selected;it.invalidate()}
         updateControls()
@@ -262,9 +280,10 @@ class InfiniWaveActivity : Activity() {
         action("Mix audible waveforms to stereo","Replace the workspace with a stereo mix; Undo restores tracks",history.current().tracks().isNotEmpty()){val p=history.current();val(a,b)=renderRange();job("Mixing waveforms",{p.mix(a,b,2)}){prepareNewDocument(WaveProject().add("Stereo mix",it,a))}}
     }
     private fun channelTools(sheet:WaveToolSheet)=with(sheet){
-        val t=selectedTrack();note("Split stereo audio into independent Left and Right waveforms. Recombine any chosen pair; other waveforms stay in the workspace.")
+        val t=selectedTrack();note("Split stereo into Left and Right, then use each waveform’s Edit control to apply effects to only that side. Mix chosen to mono adds the chosen waveforms into one channel; Recombine Left + Right keeps two channels.")
         action(if(t?.audio()?.channels()==2)"Split Left / Right" else "Split channels to mono","Create one editable waveform per source channel",t!=null&&t.profile()==null&&t.audio().channels()>1){splitChannels()}
         action("Recombine Left + Right…","Choose which mono waveform becomes each stereo side",monoTracks().size>=2){stereoDialog()}
+        action("Mix chosen to mono…","Add chosen waveforms into one channel; other tracks stay separate",monoTracks().size>=2){monoMixDialog()}
         action("Combine multiple channels…","Choose mono waveforms in workspace order",monoTracks().size>=2){combineDialog()}
         if(t?.profile()!=null)action("Render profile to audio","Required before splitting its waveform"){renderProfile()}
     }
@@ -308,7 +327,7 @@ class InfiniWaveActivity : Activity() {
     private fun monoTracks()=history.current().tracks().filter{it.profile()==null&&it.audio().channels()==1}
     private fun splitChannels(){
         val t=selectedAudio();val p=history.current();val index=p.tracks().indexOf(t)
-        job("Splitting channels",{p.splitChannels(t.id()).also(::preparePeaks)}){history.apply(it);selected=it.tracks()[index].id();changed();message("Channels split into separate waveforms • Choose Recombine Left + Right to join them")}
+        job("Splitting channels",{p.splitChannels(t.id()).also(::preparePeaks)}){history.apply(it);selected=it.tracks()[index].id();changed();message("Channels separated • Choose Edit on one waveform, then apply an effect only to it")}
     }
     private fun combine(ids:List<String>,name:String){
         val p=history.current();job("Combining chosen waveforms",{p.combineChannels(ids,name).also(::preparePeaks)}){next->val previous=p.tracks().map{it.id()}.toSet();history.apply(next);selected=next.tracks().first{it.id() !in previous}.id();changed();message("Chosen waveforms combined • Other waveforms preserved")}
@@ -327,6 +346,26 @@ class InfiniWaveActivity : Activity() {
         val dialog=AlertDialog.Builder(this).setTitle("Combine chosen mono waveforms").setMultiChoiceItems(mono.map{it.name()}.toTypedArray(),BooleanArray(mono.size){mono[it].id() in selectedIds}){_,index,checked->if(checked)selectedIds+=mono[index].id()else selectedIds-=mono[index].id()}.setNegativeButton("Cancel",null).setPositiveButton("Combine",null).create()
         dialog.setOnShowListener{dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener{try{require(selectedIds.size in 2..32){"Choose 2..32 mono waveforms"};combine(mono.filter{it.id() in selectedIds}.map{it.id()},"Combined channels");dialog.dismiss()}catch(e:Exception){Toast.makeText(this,e.message,Toast.LENGTH_LONG).show()}}};dialog.show()
     }
+    private fun monoMixDialog(){
+        val mono=monoTracks();require(mono.size>=2){"Split stereo to Left/Right, or add two mono waveforms"}
+        val chosen=linkedSetOf<String>();selected?.takeIf{id->mono.any{it.id()==id}}?.let{chosen+=it}
+        val box=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(dp(16),dp(8),dp(16),dp(8))}
+        box.addView(label("Choose only the waveforms to mix. Their full lengths, start times, gains and mute/solo choices are rendered into one mono track. Output routing and pan are ignored for mono. Only checked waveforms are replaced; Undo restores them."))
+        mono.forEach{track->box.addView(CheckBox(this).apply{
+            text=track.name();isChecked=track.id() in chosen;minHeight=dp(48)
+            setOnCheckedChangeListener{_,checked->if(checked)chosen+=track.id()else chosen-=track.id()}
+        })}
+        val average=CheckBox(this).apply{text="Average levels (divide by number of chosen waveforms)";isChecked=true;minHeight=dp(48)};box.addView(average)
+        box.addView(label("For a stereo difference: split Left / Right, Edit Right, select its whole waveform, invert polarity, then choose both here. Averaging gives (Left − Right) / 2. Uncheck averaging for a summed mix."))
+        validatedDialog("Mix chosen to mono",ScrollView(this).apply{addView(box)}){
+            require(chosen.size>=2){"Choose at least two mono waveforms"}
+            val ids=mono.filter{it.id() in chosen}.map{it.id()};val p=history.current();val averaged=average.isChecked
+            job("Mixing chosen waveforms to mono",{p.mixToMono(ids,"Mono mix",averaged).also(::preparePeaks)}){next->
+                val previous=p.tracks().map{it.id()}.toSet();history.apply(next);selected=next.tracks().first{it.id() !in previous}.id()
+                changed();message("Chosen waveforms mixed to mono • Other tracks preserved • Undo restores the sources")
+            }
+        }
+    }
     private fun effectScope():Triple<WaveProject.Track,Int,Int>{
         val t=selectedAudio()
         if(to>from){val(a,b)=selectionFrames();require(b>a){"Selection misses this waveform. Select its sound or choose Select whole waveform."};return Triple(t,a,b)}
@@ -338,7 +377,7 @@ class InfiniWaveActivity : Activity() {
         note(if(t?.profile()!=null)"Render this parameter profile to audio before applying sample effects." else effectCaption()+" Every effect can be undone.")
         action("Waveform operations ›","Invert polarity, reverse time and fades",audio){push("Waveform operations"){
             note(effectCaption())
-            action("Invert polarity","Flip samples above/below zero; keep time order"){processAudio("Inverting polarity"){input,a,b->PcmEffects.invert(input.samples(),input.channels(),a,b)}}
+            action("Invert polarity","Only ${selectedTrack()?.name()}: flip samples above/below zero; keep time order"){processAudio("Inverting polarity"){input,a,b->PcmEffects.invert(input.samples(),input.channels(),a,b)}}
             action("Reverse audio","Play the selected sound backwards"){editEffect(WaveProject.Edit.REVERSE)}
             action("Fade in"){editEffect(WaveProject.Edit.FADE_IN)}
             action("Fade out"){editEffect(WaveProject.Edit.FADE_OUT)}
@@ -395,7 +434,7 @@ class InfiniWaveActivity : Activity() {
             }
         }
     }
-    private fun quickHelp(){AlertDialog.Builder(this).setTitle("Editing audio").setMessage("1. Tap a waveform header, then drag across the sound you want to remove.\n2. Press Delete selection above the waveforms. The gap closes in that waveform; Undo restores it.\n\nPinch with two fingers to zoom without changing the selection. View → Use drag to pan moves the timeline.\n\nChannels → Split Left / Right separates stereo into mono waveforms. Recombine Left + Right lets you choose the two sides.\n\nEffects contains polarity inversion, reverse, fades, normalization and noise filters. Effects use the highlighted time, or the whole waveform when no range is selected. Profiles must be rendered to audio for sample editing.\n\nTool dialogs have Back and Close buttons. Long-press toolbar icons for their names.").setPositiveButton("Done",null).show()}
+    private fun quickHelp(){AlertDialog.Builder(this).setTitle("Editing audio").setMessage("1. Tap a waveform header, then drag across the sound you want to remove.\n2. Press Delete selection above the waveforms. The gap closes in that waveform; Undo restores it.\n\nPinch with two fingers to zoom without changing the selection. View → Use drag to pan moves the timeline.\n\nUse the Edit control beside a waveform to target only that track. Split Left / Right separates stereo for independent editing. Select one side, select its whole waveform, then Effects → Waveform operations → Invert polarity. Channels → Mix chosen to mono adds only the waveforms you check. Recombine Left + Right keeps them as stereo.\n\nEffects contains polarity inversion, reverse, fades, normalization and noise filters. Effects use the highlighted time, or the whole waveform when no range is selected. Profiles must be rendered to audio for sample editing.\n\nTool dialogs have Back and Close buttons. Long-press toolbar icons for their names.").setPositiveButton("Done",null).show()}
     private fun moreMenu(anchor:View){
         PopupMenu(this,anchor).apply{
             listOf("New workspace","Open project…","Save project…","Import audio…","Load profile JSON…","Editing help","About / licenses").forEachIndexed{i,text->menu.add(0,i,i,text)}
@@ -522,7 +561,7 @@ class InfiniWaveActivity : Activity() {
     }
     private fun newWorkspace(){AlertDialog.Builder(this).setMessage("Start a new workspace? Save your project first if you want to keep it.").setNegativeButton("Cancel",null).setPositiveButton("New"){_,_->stop();history.apply(WaveProject());selected=null;from=0.0;to=0.0;fitView();changed()}.show()}
     private fun saveProject(){val p=history.current();val f=File.createTempFile("wave-project-",".iwave",cacheDir);job("Saving project",{try{f.outputStream().buffered().use{ProjectFile.write(p,it)};f}catch(e:Throwable){f.delete();throw e}}){save(it,"infiniwave-project.iwave","application/vnd.infiniforge.wave-project")}}
-    private fun about(){AlertDialog.Builder(this).setTitle("InfiniWave 0.3.1").setMessage("Multitrack editing, waveform effects and parameter-based synthesis. Original app/library code is MIT. Native cores: Nuked-OPL3 (LGPL-2.1+), chips m6581 (zlib), SAA1099 (BSD-3-Clause).\n\nSource and notices: github.com/infiniforge/infiniwave and github.com/infiniforge/libinfinisynth\n\nImported files stay untouched. Noise filters and gating are adjustable; learned-profile spectral denoising is not implemented.").setPositiveButton("Done",null).show()}
+    private fun about(){AlertDialog.Builder(this).setTitle("InfiniWave 0.4.0").setMessage("Multitrack editing, waveform effects and parameter-based synthesis. Original app/library code is MIT. Native cores: Nuked-OPL3 (LGPL-2.1+), chips m6581 (zlib), SAA1099 (BSD-3-Clause).\n\nSource and notices: github.com/infiniforge/infiniwave and github.com/infiniforge/libinfinisynth\n\nImported files stay untouched. Noise filters and gating are adjustable; learned-profile spectral denoising is not implemented.").setPositiveButton("Done",null).show()}
     private fun save(file:File,name:String,mime:String){
         try{val uri=InfiniSelect.createFileDocument(this,file,name,mime);pendingFile=file;savePending=true
             InfiniSelect.save(this,SaveRequest(clientId="infiniwave",displayName="InfiniWave",fileName=name,mimeType=mime,sourceUri=uri,sourceSizeBytes=file.length(),initialDirectory=directory),REQUEST_SAVE);refresh()

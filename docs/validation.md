@@ -7,7 +7,13 @@ are also run from that library's own checkout for its new PCM processing API.
 Regression coverage includes selection clipping/deletion, immutable sources,
 effect save/undo/redo, explicit stereo pair ordering, preserving unrelated tracks,
 relative offsets, split/recombine mixer levels, mute behavior, profile guards and
-project round-trips. Gesture models cover deferred selection commits, cancellation,
+project round-trips. Mono mix regressions cover explicit chosen IDs, split routing
+folded to mono, offset/gain preservation, average/sum levels, chosen mute/solo flags,
+unrelated-track isolation, unclipped float samples, invalid selections/profiles,
+render budgets, cancellation and undo. An app integration test splits stereo,
+inverts only Right with libinfinisound, mixes to mono, checks common-signal
+cancellation and unrelated PCM, undoes all three operations and verifies mono WAV
+export/import. Gesture models cover deferred selection commits, cancellation,
 second-pointer selection suppression, anchored pinch zoom, two-finger pan and
 viewport bounds. Pinch geometry also covers fingers in separate tracks, vertical
 and diagonal gestures, small movements, changing pointer pairs and invalid/nearby
@@ -18,5 +24,6 @@ DC/peak normalization, finite values, invalid parameters and cancellation.
 No Android device is connected in the current build environment. Handset acceptance
 is still required for toolbar/dialog sizing and Back navigation, dragging/deleting
 sound, pinch focus and vertical workspace scrolling, audible filtering and playback,
-selecting different stereo pairs, and SAF/InfiniFolder open/save round-trips.
+selecting different stereo pairs, Edit radio states and isolated highlights, the
+split/invert/mono dialog workflow, and SAF/InfiniFolder open/save round-trips.
 Automated model/DSP tests do not substitute for those touch/audio checks.

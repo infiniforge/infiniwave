@@ -1,6 +1,6 @@
 # InfiniWave
 
-InfiniWave 0.3.1 is an independent Android multitrack audio editor and sound-design
+InfiniWave 0.4.0 is an independent Android multitrack audio editor and sound-design
 workspace, inspired by Audacity. Import several files or generate sounds; each
 track appears on a shared timeline with separate channel lanes. There is no fixed
 workspace track count; memory/render budgets still apply.
@@ -13,9 +13,15 @@ the selection, including when fingers land on different tracks. Spread fingers t
 zoom in, pinch together to zoom out; moving both fingers pans the timeline. View
 switches one-finger dragging between selection and timeline pan.
 
-Channels → **Split Left / Right** creates separate mono waveforms. **Recombine
+Each waveform has an **Edit** selector: effects and highlighted selections target
+only that waveform. **Split Left / Right to edit separately** is visible beneath
+stereo headers, and Channels → **Split Left / Right** creates separate mono waveforms. **Recombine
 Left + Right** assigns any chosen pair to stereo while preserving other tracks.
 Multiple chosen mono waveforms can also become independent output channels.
+**Mix chosen to mono** instead adds just the checked waveforms into one channel,
+leaving other tracks untouched. To make a stereo difference, split, Edit Right,
+select its whole waveform, invert polarity, then mix Left and Right to mono.
+Averaging is enabled by default, producing `(Left - Right) / 2`; turn it off to sum.
 
 Effects includes polarity inversion, reverse, fades, configurable peak normalization
 (with linked channels/DC removal), low/high-pass filters, 50/60 Hz hum notch filters,

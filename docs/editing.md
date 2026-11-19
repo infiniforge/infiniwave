@@ -2,7 +2,8 @@
 
 ## Delete part of a sample
 
-Tap the waveform header, drag across the sound to highlight a time range, then
+Choose **Edit** beside the waveform (or tap its header), drag across the sound to
+highlight a time range, then
 press **Delete selection** above the workspace. The highlighted frames are removed
 from that waveform and its later samples move left to close the gap. Other tracks
 stay at their original times. Undo restores the edit. Empty or non-overlapping
@@ -29,13 +30,41 @@ to horizontal timeline movement; switch back to drag-to-select for editing.
 
 Select a stereo waveform and open Channels → **Split Left / Right**. Its L/R lanes
 become two independent mono waveforms named Left and Right. Their gains and output
-routes preserve the source's audible stereo levels. Each can be selected and edited.
+routes preserve the source's audible stereo levels. The same split control is
+visible beneath each stereo header. Choose **Edit** beside Left or Right to target
+only that waveform; only the active waveform shows the committed time highlight.
+A drag on another waveform previews locally and selects that waveform on release.
 
 Channels → **Recombine Left + Right** lets you choose which mono waveform is Left
 and which is Right. Only those two are replaced. Their relative start times are
 preserved; their gains and mute/solo choices are baked into the new stereo PCM.
 Other waveforms remain in the workspace. Undo restores the separate source tracks.
 Combine multiple channels assigns chosen mono waveforms in workspace order.
+
+## Invert one side and mix to mono
+
+1. Press **Split Left / Right to edit separately** below the stereo header.
+2. Choose **Edit** beside Right. Select → **Select whole waveform** targets the
+   entire channel; highlight a shorter range to invert only that part.
+3. Effects → Waveform operations → **Invert polarity** changes only Right. Left
+   and every other waveform retain their original samples.
+4. Channels → **Mix chosen to mono**: check Left and Right, leaving other tracks
+   unchecked, then Apply. This replaces only those sources with one mono waveform.
+
+The default **Average levels** setting divides the sum by the number of checked
+waveforms: for this pair it produces `(Left - Right) / 2`. Uncheck it for a summed
+`Left - Right` mix. Identical samples on both sides cancel to zero. This is a
+stereo difference operation; other sound shared by the channels also cancels.
+
+Mixing uses each chosen waveform's full length, preserving relative start times
+and rendering its gain and mute/solo settings into PCM. Solo considers only checked
+waveforms; an unrelated solo track cannot suppress the render. The average divisor
+includes checked muted/non-solo waveforms. Output destination routes and pan are
+ignored when folding to mono, so split Right's channel-2 route works automatically.
+The result starts at the earliest chosen start, uses unity gain and normal output
+routing, and carries solo if any source was solo. Unrelated tracks are preserved.
+Float samples remain unclipped internally; summed levels may clip during output.
+Undo restores mixing, inversion and splitting separately; source files stay intact.
 
 ## Effects
 
