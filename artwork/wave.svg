@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="InfiniWave transparent multitrack waveform artwork">
+<title>InfiniWave sound waves</title>
+<desc>Layered cyan and amber waveforms with small mixer controls. Outside the sound artwork the canvas is transparent.</desc>
+<defs>
+  <linearGradient id="cyan" x1="0" x2="1" y2="1"><stop stop-color="#d2fff4"/><stop offset=".5" stop-color="#4edacc"/><stop offset="1" stop-color="#288ca8"/></linearGradient>
+  <linearGradient id="gold" x1="0" x2="1" y2="1"><stop stop-color="#fff1bd"/><stop offset=".5" stop-color="#ffcf68"/><stop offset="1" stop-color="#d88835"/></linearGradient>
+  <linearGradient id="rail" x1="0" x2="1" y2="1"><stop stop-color="#52818c"/><stop offset="1" stop-color="#1b3d4a"/></linearGradient>
+</defs>
+<g stroke="#173443" stroke-width="8" stroke-linejoin="round" stroke-linecap="round">
+  <path d="M65 118H447M65 392H447" stroke="#294e5b"/>
+  <path d="M67 118L87 118L101 76L117 160L136 36L157 200L181 62L203 170L223 103L244 135L264 79L285 161L307 24L330 208L352 48L372 179L392 88L411 145L430 118H448" fill="none" stroke="url(#cyan)" stroke-width="15"/>
+  <path d="M65 391H85L105 364L125 423L146 315L169 473L190 344L213 436L235 371L257 407L278 338L300 447L321 306L345 480L367 328L390 427L413 366L434 391H448" fill="none" stroke="url(#gold)" stroke-width="14"/>
+  <path d="M59 195V319M453 195V319" stroke="url(#rail)" stroke-width="14"/>
+  <rect x="41" y="211" width="36" height="28" rx="8" fill="url(#cyan)"/>
+  <rect x="435" y="277" width="36" height="28" rx="8" fill="url(#gold)"/>
+</g>
+</svg>

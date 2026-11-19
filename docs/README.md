@@ -1,13 +1,9 @@
-# InfiniWave documentation index
+# InfiniWave documentation
 
-Planned sound-generation and instrument-creation application.
-
-## Start here
-
-- [Application description and implementation status](APPLICATION.md).
-
-- [Project overview and standalone build](../README.md).
-- [Repository-specific agent guidance](../AGENTS.md).
-- [InfiniForge ecosystem map](ECOSYSTEM.md) — generated from the organization manifest; do not edit this copy.
-
-This repository is currently a planned placeholder. It has no implemented public API or standalone build documentation yet.
+- [Application](APPLICATION.md): implemented editing/generation and remaining scope.
+- [Architecture](architecture.md): ownership, threads, immutable PCM and project state.
+- [Storage](storage.md): InfiniSelect/SAF, project persistence, recovery and export.
+- [Profiles](profiles.md): parameter tracks and versioned JSON interoperability.
+- [Ecosystem](ECOSYSTEM.md): generated component and protocol inventory.
+- [Build and usage](../README.md): independent build and icon regeneration.
+- [Library pins](../dependencies.lock.json): exact public source revisions.

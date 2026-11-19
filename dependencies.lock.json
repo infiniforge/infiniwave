@@ -1,0 +1,21 @@
+{
+  "directory": "libraries",
+  "repositories": {
+    "libinfiniselect": {
+      "url": "https://github.com/infiniforge/libinfiniselect.git",
+      "commit": "bef55c7c650b472b6e275088de684f83a4b064e0"
+    },
+    "libinfinisound": {
+      "url": "https://github.com/infiniforge/libinfinisound.git",
+      "commit": "d5e86fd697fed7040b4ba2308197dce76fac7d60"
+    },
+    "libinfinistream": {
+      "url": "https://github.com/infiniforge/libinfinistream.git",
+      "commit": "6a551a523f3161902b3a1f70902fd2a4ee49a6cd"
+    },
+    "libinfinisynth": {
+      "url": "https://github.com/infiniforge/libinfinisynth.git",
+      "commit": "781ec8f5729d29a2c3d2c877673d9dfd32f32de7"
+    }
+  }
+}

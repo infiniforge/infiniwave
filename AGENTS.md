@@ -1,32 +1,40 @@
 # InfiniWave agent guidance
 
-InfiniWave is a planned Infiniforge sound-generation and instrument-creation environment. This directory is a project placeholder; do not describe features as implemented until they exist in this app. Its current direction is documented in `docs/APPLICATION.md`.
+InfiniWave is an independent Android audio editor in early implementation. This
+checkout contains a multitrack editor and parameter-based synthesis profiles. Keep documentation clear about implemented behavior and planned
+work; its direction is documented in docs/APPLICATION.md.
 
 ## Independence and integration
 
-- Establish a standalone Android application build in this repository. It must build from its own checkout with only its declared and pinned library dependencies and documented toolchain.
-- Keep its Gradle build independent from every other application. Do not import sibling app source or depend on sibling build outputs.
-- Use reusable audio processing and decoding through linked libraries such as libinfinisound when suitable. Keep editing workflow, UI, and app-owned project state in this application.
+- Build this repository from its own checkout with only its declared and pinned library dependencies and documented SDK/toolchain prerequisites.
+- Keep its Gradle build independent from every other application. Do not include another app as a Gradle project or import sibling app source/build outputs.
+- Use reusable audio processing, decoding, PCM, and synthesis APIs through linked libraries such as libinfinisound when suitable. Keep editor workflows, UI, and app-owned project state in InfiniWave.
 - Use Android SAF and granted content URIs for import and export. Infinifolder may improve file access when installed, but must remain optional.
 
 ## Project focus
 
-- The intended role is sound generation, instrument creation, sound design, and preset management. Define synthesis APIs, project/preset formats, and export behavior as implementation grows; do not describe an audio editor or complete Audacity feature parity as the current direction.
-- Document the app's standalone build and keep library revisions explicit.
+- Audio editing and processing are the central workflows; audio and instrument-sample generation support that work.
+- Preserve parameter profiles as source data; PCM previews are render caches. Sample edits require explicit render-to-audio conversion.
+- Keep waveform editing and profile changes undoable; source URIs stay read-only.
+- Do not claim recording, plugin effects, complete format coverage, or Audacity parity.
+- Version JSON/project formats and validate parameters, file sizes and PCM budgets.
+- Document standalone build instructions and exact library revisions.
 
 ## Ecosystem workflow for agents
 
-1. Read `docs/ECOSYSTEM.md` first to understand the component map and ownership boundaries.
-2. Read `docs/APPLICATION.md` for this app's intended role and current status. Before changing a public interface, read the repository's architecture and API documentation listed below and inspect compatibility notes.
-3. Check the owning shared library repository before implementing behavior that may already exist elsewhere. Do not conclude a capability is unavailable just because its implementation is outside the current repository.
-4. Keep application responsibilities, shared library APIs, and other applications' private data/source separate.
-5. Before a cross-repository change, check the exact dependency pin and the relevant interoperability contract. Dependency versions and protocol versions are separate; do not infer protocol incompatibility from a library-version mismatch.
-6. Update the local documentation index and relevant API/behavior documentation when public behavior changes. `docs/ECOSYSTEM.md` is generated from the central manifest and must not be edited locally.
+1. Read docs/ECOSYSTEM.md for component ownership and suite boundaries.
+2. Read docs/APPLICATION.md and the architecture/storage docs before changing public behavior.
+3. Check shared library APIs before implementing reusable audio or storage behavior.
+4. Keep app responsibilities, public library APIs, and other applications' private data/source separate.
+5. Check exact dependency pins and interoperability contracts before cross-repository changes.
+6. Update the documentation index and relevant API/behavior documentation. docs/ECOSYSTEM.md is generated from the central manifest and must not be edited locally.
 
 ## Documentation index
 
-- `README.md` — project purpose, prerequisites, and standalone build instructions.
-- `AGENTS.md` — repository-specific development rules and this ecosystem workflow.
-- `docs/README.md` — local documentation index.
-- `docs/APPLICATION.md` — application purpose, responsibilities, implementation status, planned work, and known limits.
-- `docs/ECOSYSTEM.md` — generated ecosystem-wide inventory, boundaries, dependencies, versions, and protocols.
+- README.md — project purpose, prerequisites, and standalone build.
+- docs/README.md — local documentation index.
+- docs/APPLICATION.md — purpose and implementation status.
+- docs/architecture.md — ownership and audio workflow.
+- docs/storage.md — URI selection, grants, and save fallback.
+- docs/profiles.md — rendering profiles and versioned JSON.
+- docs/ECOSYSTEM.md — generated ecosystem inventory; do not edit locally.
